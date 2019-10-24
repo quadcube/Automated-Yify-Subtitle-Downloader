@@ -1,6 +1,5 @@
 import os
 import re
-import time
 import urllib
 import logging
 import requests # pip install requests
@@ -30,6 +29,8 @@ def main():
     counter_movie_w_srt = 0
     counter_movie_dl_srt = 0
     counter_movie_dl_srt_failed = 0
+    counter_movie_no_srt = 0
+    counter_no_movie = 0
     for dir_name, subdir_list, file_list in os.walk(root_dir): # crawl thru current directory
         if '/' in dir_name[len(root_dir):] or dir_name == root_dir:
             continue    # only transverse one level deep
@@ -38,7 +39,7 @@ def main():
             found_srt = False
             counter_movie += 1
             for file_name in file_list:
-                if file_name.endswith('.srt'):
+                if file_name.lower().endswith('.srt'):
                     logger.info('Found file_list: {}'.format(file_list))
                     found_srt = True
                     counter_movie_w_srt += 1
@@ -49,16 +50,19 @@ def main():
                     dir_name_list = dir_name[len(root_dir):].split("(", maxsplit=1)
                     dir_name_year = dir_name_list[1].split(")", maxsplit=1)[0]
                     search_query = dir_name_list[0].strip() # remove year and lead, trailing whitespace as yifisubtitle.com search query will return nothing
-                    text_html = html2text(root_url + '/search?' + urllib.parse.urlencode({'q':search_query}))
-                    relevant_results = re.findall('\/movie-imdb\/.+\)\n+.\n+.+\n+.+year', text_html)
-                    for result in relevant_results:
-                        result_list = result.split(')\n\n[\n\n### ', maxsplit=1)
-                        result_link = result_list[0]
-                        result_name = result_list[1].split('\n\n')[0]
-                        result_year = result[-8:-4]
-                        if result_name.lower() == search_query.lower() and dir_name_year == result_year:
-                            logger.info('Found movie: {} Year: {}'.format(result_name, result_year))
-                            found_movie = True
+                    for i in range(search_query.count(' ') + 1): # i = 0, .replace() does nothing
+                        text_html = html2text(root_url + '/search?' + urllib.parse.urlencode({'q':search_query.replace(' ', ': ', i).replace(': ', ' ', i-1)})) # Try diff combinations of ":" in the search query
+                        relevant_results = re.findall('\/movie-imdb\/.+\)\n+.\n+.+\n+.+year', text_html)
+                        for result in relevant_results:
+                            result_list = result.split(')\n\n[\n\n### ', maxsplit=1)
+                            result_link = result_list[0]
+                            result_name = result_list[1].split('\n\n')[0]
+                            result_year = result[-8:-4]
+                            if result_name.lower() == search_query.lower().replace(' ', ': ', i).replace(': ', ' ', i-1) and dir_name_year == result_year:
+                                logger.info('Found movie: {} Year: {}'.format(result_name, result_year))
+                                found_movie = True
+                                break
+                        if found_movie == True:
                             break
                     if found_movie == True:
                         text_html = html2text(root_url + result_link)
@@ -120,7 +124,7 @@ def main():
                                     with ZipFile(dir_name + '/temp_srt.zip') as srt_zip_file:
                                         srt_zip_file_list = srt_zip_file.namelist()
                                         for srt_file in srt_zip_file_list:
-                                            if srt_file.endswith('.srt'):
+                                            if srt_file.lower().endswith('.srt'):
                                                 srt_zip_file.extract(srt_file, dir_name)
                                                 break
                                     os.rename(dir_name + '/' + srt_file, dir_name + '/' + found_movie) # rename srt to match movie file
@@ -128,14 +132,17 @@ def main():
                                     counter_movie_dl_srt += 1
                             else:
                                 logger.warning('No filtered srt found on yifysubtitles.com! {}'.format(dir_name))
+                                counter_movie_no_srt += 1
                     else:
                         logger.warning('No movie found on yifysubtitles.com! {}'.format(dir_name))
+                        counter_no_movie += 1
                 except Exception as error:
                     logger.exception(error)
                     counter_movie_dl_srt_failed += 1
                     #logger.info(text_html)
-                    # Errors caused by line 42 is due to missing year info in dir_name
-        logger.info('Current stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\t'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed))
+                    # Errors caused by line 51 is due to missing year info in dir_name
+                    # Errors caused by bad html response code, ignore since there's nothing to do about it
+        logger.info('Current stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\tMovie no srt failed: {}\tNo movie: {}'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed, counter_movie_no_srt, counter_no_movie))
     logging.info('Completed. Exiting...')
 if __name__== "__main__":
     main()
