@@ -83,8 +83,8 @@ def main():
                                         if result[1] in srt_language:
                                             result_title_link = result[2].replace('[subtitle', '').split('](/subtitles')
                                             subtitle_results[subtitle_num] = {'Rate': int(result[0]), 'Lang': result[1], 'Title': result_title_link[0], 'Link': '/subtitle' + result_title_link[1][:-1] + '.zip', 'Uploader': result[4][1:].split('](')[0]}
-                                            if srt_manual_select == True:
-                                                logger.info('({}) {}'.format(subtitle_num, subtitle_results[subtitle_num]))
+                                            #if srt_manual_select == True:
+                                            logger.info('({}) {}'.format(subtitle_num, subtitle_results[subtitle_num]))
                                             subtitle_num += 1
                             if subtitle_num > 0: # check whether there's any filtered srt
                                 if srt_manual_select == True and subtitle_num > 0:
@@ -102,11 +102,10 @@ def main():
                                     subtitle_yts_rank = (None, 0) # subtitle_key, rating
                                     subtitle_rank = (None, 0) # subtitle_key, rating
                                     for subtitle_key, subtitle_value in subtitle_results.items():
-                                        if subtitle_rank[1] <= subtitle_value['Rate']:
-                                            if 'yts' in subtitle_value['Title'].lower() or 'yify' in subtitle_value['Title'].lower(): #prioritize YTS tags in title, since most movie files are obtained from YTS
-                                                subtitle_yts_rank = (subtitle_key, subtitle_value['Rate'])
-                                            else:
-                                                subtitle_rank = (subtitle_key, subtitle_value['Rate'])
+                                        if subtitle_yts_rank[1] <= subtitle_value['Rate'] and ('yts' in subtitle_value['Title'].lower() or 'yify' in subtitle_value['Title'].lower()): #prioritize YTS tags in title, since most movie files are obtained from YTS'
+                                            subtitle_yts_rank = (subtitle_key, subtitle_value['Rate'])
+                                        elif subtitle_rank[1] <= subtitle_value['Rate']:
+                                            subtitle_rank = (subtitle_key, subtitle_value['Rate'])
                                     if subtitle_yts_rank[0] == None: # if YTS srt is not available, use non-YTS
                                         subtitle_yts_rank = subtitle_rank
                                     subtitle_results = subtitle_results[subtitle_yts_rank[0]]
