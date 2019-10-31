@@ -15,6 +15,7 @@ root_dir = "/Volumes/GoogleDrive/My Drive/Server Backup/WD_MyBookLive_2TB/Public
 root_url = "http://www.yifysubtitles.com"
 srt_language = ['English']
 srt_manual_select = False
+refresh_yts_srt = False # if YTS movie files are found, rename any srt files (.backup) in that folder and download the best srt
 valid_movie_file_ext = ['.mp4', '.m4v', '.avi', '.mkv', '.mov', '.webm', '.flv', '.vob', '.rm', '.rmvb', '.wmv', '.m4v', '.mpeg', '.mpg', '.m2v', '.MTS', '.M2TS', '.TS']
 
 def html2text(url):
@@ -40,10 +41,15 @@ def main():
             counter_movie += 1
             for file_name in file_list:
                 if file_name.lower().endswith('.srt'):
-                    logger.info('Found file_list: {}'.format(file_list))
-                    found_srt = True
-                    counter_movie_w_srt += 1
-                    break
+                    if refresh_yts_srt == True and ('yts' in file_name.lower() or 'yify' in file_name.lower()):
+                        logger.info('Renaming srt file_list: {}'.format(file_list))
+                        os.rename(dir_name + '/' + file_name, dir_name + '/' + file_name[:-4] + '.backup') # rename .srt to .backup
+                        break
+                    else:
+                        logger.info('Found file_list: {}'.format(file_list))
+                        found_srt = True
+                        counter_movie_w_srt += 1
+                        break
             if found_srt == False:
                 try:
                     found_movie = False
@@ -139,7 +145,7 @@ def main():
                     logger.exception(error)
                     counter_movie_dl_srt_failed += 1
                     #logger.info(text_html)
-                    # Errors caused by line 51 is due to missing year info in dir_name
+                    # Errors caused by line 57 is due to missing year info in dir_name
                     # Errors caused by bad html response code, ignore since there's nothing to do about it
         logger.info('Current stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\tMovie no srt failed: {}\tNo movie: {}'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed, counter_movie_no_srt, counter_no_movie))
     logging.info('Completed. Exiting...')
