@@ -16,6 +16,8 @@ root_url = "http://www.yifysubtitles.com"
 srt_language = ['English']
 srt_manual_select = False
 refresh_yts_srt = False # if YTS movie files are found, rename any srt files (.backup) in that folder and download the best srt
+remove_invalid_srt = True
+invalid_srt_size_threshold = 1024 # remove anything less than 1024 bytes if remove_invalid_srt = True
 valid_movie_file_ext = ['.mp4', '.m4v', '.avi', '.mkv', '.mov', '.webm', '.flv', '.vob', '.rm', '.rmvb', '.wmv', '.m4v', '.mpeg', '.mpg', '.m2v', '.MTS', '.M2TS', '.TS']
 
 def html2text(url):
@@ -47,9 +49,16 @@ def main():
                         break
                     else:
                         logger.info('Found file_list: {}'.format(file_list))
+                        if remove_invalid_srt == True:
+                            if os.stat(dir_name + '/' + file_name).st_size < invalid_srt_size_threshold:
+                                logger.info('Removing file {}'.format(file_name))
+                                os.remove(dir_name + '/' + file_name)
+                                break
+                                
                         found_srt = True
                         counter_movie_w_srt += 1
                         break
+                            
             if found_srt == False:
                 try:
                     found_movie = False
