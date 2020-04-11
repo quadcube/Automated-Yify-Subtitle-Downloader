@@ -72,7 +72,10 @@ def main():
                             result_list = result.split(')\n\n[\n\n### ', maxsplit=1)
                             result_link = result_list[0]
                             result_name = result_list[1].split('\n\n')[0]
-                            result_year = result[-8:-4]
+                            for j in range(5):
+                                if result[-5 - j].isdigit(): # as long as not digit, backtrack until digit is found
+                                    result_year = result[-8 - j:-4 - j]
+                                    break
                             if result_name.lower() == search_query.lower().replace(' ', ': ', i).replace(': ', ' ', i-1) and dir_name_year == result_year:
                                 logger.info('Found movie: {} Year: {}'.format(result_name, result_year))
                                 found_movie = True
@@ -82,7 +85,7 @@ def main():
                     if found_movie == True:
                         text_html = html2text(root_url + result_link)
                         #print(repr(text_html))
-                        relevant_results = re.findall('\s\s\n\d{1,}\|\s\w+\|\s\[subtitle\s.+####\sTrailer', text_html, re.DOTALL)
+                        relevant_results = re.findall('\s\s\n\d{1,}\s?\|\s\s?\w+\s?\|\s\s?\[\s?subtitle\s.+####\sTrailer', text_html, re.DOTALL)
                         if len(relevant_results) > 1:
                             logger.warning('Relevant result more than 1. {}'.format(dir_name))
                         if len(relevant_results) == 0:
