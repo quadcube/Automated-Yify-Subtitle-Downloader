@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(threadName)-12.12
 logger = logging.getLogger()
 
 root_dir = "/Volumes/GoogleDrive/My Drive/Server Backup/WD_MyBookLive_2TB/Public/Shared Videos/" #os.getcwd()
-root_url = "http://www.yifysubtitles.com"
+root_url = "http://www.yifysubtitles.com" # 1) www.yifysubtitles.com 2) yts-subs.com
 srt_language = ['English']
 srt_manual_select = False
 refresh_yts_srt = False # if YTS movie files are found, rename any srt files (.backup) in that folder and download the best srt
@@ -89,7 +89,7 @@ def main():
                         if len(relevant_results) > 1:
                             logger.warning('Relevant result more than 1. {}'.format(dir_name))
                         if len(relevant_results) == 0:
-                            logger.warning('No srt found on yifysubtitles.com! {}'.format(dir_name))
+                            logger.warning('No srt found on {}! {}'.format(root_url, dir_name))
                         else:
                             relevant_results = relevant_results[0].split('  \n')
                             subtitle_results = {}
@@ -100,7 +100,7 @@ def main():
                                         result = result.replace('\n', '').replace(' ', '').split('|') # first remove the annoying \n, spaces and split according to tags
                                         if result[1] in srt_language:
                                             result_title_link = result[2].replace('[subtitle', '').split('](/subtitles')
-                                            subtitle_results[subtitle_num] = {'Rate': int(result[0]), 'Lang': result[1], 'Title': result_title_link[0], 'Link': '/subtitle' + result_title_link[1][:-1] + '.zip', 'Uploader': result[4][1:].split('](')[0]}
+                                            subtitle_results[subtitle_num] = {'Rate': int(result[0]), 'Lang': result[1], 'Title': result_title_link[0], 'Link': '/subtitle' + result_title_link[1][:-1] + '.zip', 'Uploader': result[4][1:].split('](')[0] if result[3] == '' else result[3]}
                                             #if srt_manual_select == True:
                                             logger.info('({}) {}'.format(subtitle_num, subtitle_results[subtitle_num]))
                                             subtitle_num += 1
@@ -148,10 +148,10 @@ def main():
                                     os.remove(dir_name + '/temp_srt.zip')
                                     counter_movie_dl_srt += 1
                             else:
-                                logger.warning('No filtered srt found on yifysubtitles.com! {}'.format(dir_name))
+                                logger.warning('No filtered srt found on {}! {}'.format(root_url, dir_name))
                                 counter_movie_no_srt += 1
                     else:
-                        logger.warning('No movie found on yifysubtitles.com! {}'.format(dir_name))
+                        logger.warning('No movie found on {}! {}'.format(root_url, dir_name))
                         counter_no_movie += 1
                 except Exception as error:
                     logger.exception(error)
