@@ -88,7 +88,7 @@ def main():
                     if found_movie == True:
                         text_html = html2text(root_url + result_link)
                         #print(repr(text_html))
-                        relevant_results = re.findall('\s\s\n\d{1,}\s?\|\s\s?\w+\s?\|\s\s?\[\s?subtitle\s.+####\sTrailer', text_html, re.DOTALL)
+                        relevant_results = re.findall('\s\s\n\d{1,}\s?\|\s\s?\w+\s?\|\s\s?\[\s?subtitle\s.+\d\)\s\s\n\s\s\n', text_html, re.DOTALL) #re.findall('\s\s\n\d{1,}\s?\|\s\s?\w+\s?\|\s\s?\[\s?subtitle\s.+####\sTrailer', text_html, re.DOTALL)
                         if len(relevant_results) > 1:
                             logger.warning('Relevant result more than 1. {}'.format(dir_name))
                         if len(relevant_results) == 0:
