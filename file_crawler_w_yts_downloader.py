@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(threadName)-12.12
 logger = logging.getLogger()
 
 root_dir = "/Volumes/GoogleDrive/My Drive/Server Backup/WD_MyBookLive_2TB/Public/Shared Videos/" #os.getcwd()
-root_url = "http://www.yifysubtitles.com" # 1) www.yifysubtitles.com 2) yts-subs.com
+root_url = "http://www.yifysubtitles.com" # 1) www.yifysubtitles.com 2) yts-subs.com (need refinement)
 srt_language = ['English']
 srt_manual_select = False
 refresh_yts_srt = False # if YTS movie files are found, rename any srt files (.backup) in that folder and download the best srt
@@ -66,7 +66,10 @@ def main():
                     dir_name_year = dir_name_list[1].split(")", maxsplit=1)[0]
                     search_query = dir_name_list[0].strip() # remove year and lead, trailing whitespace as yifisubtitle.com search query will return nothing
                     for i in range(search_query.count(' ') + 1): # i = 0, .replace() does nothing
-                        text_html = html2text(root_url + '/search?' + urllib.parse.urlencode({'q':search_query.replace(' ', ': ', i).replace(': ', ' ', i-1)})) # Try diff combinations of ":" in the search query
+                        if root_url == "http://www.yifysubtitles.com":
+                            text_html = html2text(root_url + '/search?' + urllib.parse.urlencode({'q':search_query.replace(' ', ': ', i).replace(': ', ' ', i-1)})) # Try diff combinations of ":" in the search query
+                        else: # yts-subs.com
+                            text_html = html2text(root_url + '/search/' + urllib.parse.quote(search_query).replace(' ', ': ', i).replace(': ', ' ', i-1))
                         relevant_results = re.findall('\/movie-imdb\/.+\)\n+.\n+.+\n+.+year', text_html)
                         for result in relevant_results:
                             result_list = result.split(')\n\n[\n\n### ', maxsplit=1)
