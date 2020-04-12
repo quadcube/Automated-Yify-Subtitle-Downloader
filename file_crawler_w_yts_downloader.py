@@ -38,17 +38,17 @@ def main():
         if '/' in dir_name[len(root_dir):] or dir_name == root_dir:
             continue    # only transverse one level deep
         else:
-            logger.info('Found dir: {}'.format(dir_name))
+            logger.debug('Found dir: {}'.format(dir_name))
             found_srt = False
             counter_movie += 1
             for file_name in file_list:
                 if file_name.lower().endswith('.srt'):
                     if refresh_yts_srt == True and ('yts' in file_name.lower() or 'yify' in file_name.lower()):
-                        logger.info('Renaming srt file_list: {}'.format(file_list))
+                        logger.debug('Renaming srt file_list: {}'.format(file_list))
                         os.rename(dir_name + '/' + file_name, dir_name + '/' + file_name[:-4] + '.backup') # rename .srt to .backup
                         break
                     else:
-                        logger.info('Found file_list: {}'.format(file_list))
+                        logger.debug('Found file_list: {}'.format(file_list))
                         if remove_invalid_srt == True:
                             if os.stat(dir_name + '/' + file_name).st_size < invalid_srt_size_threshold:
                                 logger.info('Removing file {}'.format(file_name))
@@ -131,7 +131,7 @@ def main():
                                         subtitle_yts_rank = subtitle_rank
                                     subtitle_results = subtitle_results[subtitle_yts_rank[0]]
                                 logger.info(subtitle_results)
-                                logger.info(file_list)
+                                logger.debug(file_list)
                                 movie_name = None
                                 for file_name in file_list:
                                     for file_type in valid_movie_file_ext:
@@ -140,7 +140,7 @@ def main():
                                             break
                                 if found_movie != None:
                                     with open(dir_name + '/temp_srt.zip', 'wb') as srt_zip_file:
-                                        srt_zip_file.write(requests.get(root_url + subtitle_results['Link']).content)
+                                        srt_zip_file.write(requests.get(root_url + subtitle_results['Link']).content) # TODO: yts-subs.com subtitles come from www.yifysubtitles.com, hence root_url won't work.
                                     with ZipFile(dir_name + '/temp_srt.zip') as srt_zip_file:
                                         srt_zip_file_list = srt_zip_file.namelist()
                                         for srt_file in srt_zip_file_list:
@@ -162,7 +162,8 @@ def main():
                     #logger.info(text_html)
                     # Errors caused by line 57 is due to missing year info in dir_name
                     # Errors caused by bad html response code, ignore since there's nothing to do about it
-        logger.info('Current stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\tMovie no srt failed: {}\tNo movie: {}'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed, counter_movie_no_srt, counter_no_movie))
+        logger.debug('Current stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\tMovie no srt failed: {}\tNo movie: {}'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed, counter_movie_no_srt, counter_no_movie))
+    logger.info('Final stat -> Movie: {}\tMovie w srt: {}\tMovie dl srt: {}\tMovie dl srt failed: {}\tMovie no srt failed: {}\tNo movie: {}'.format(counter_movie, counter_movie_w_srt, counter_movie_dl_srt, counter_movie_dl_srt_failed, counter_movie_no_srt, counter_no_movie))
     logging.info('Completed. Exiting...')
 if __name__== "__main__":
     main()
